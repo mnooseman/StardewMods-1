@@ -1,0 +1,13 @@
+{
+  "Name": "Self Service",
+  "Author": "Jarvie.K",
+  "Version": {
+    "MajorVersion": 0,
+    "MinorVersion": 1,
+    "PatchVersion": 0,
+    "Build": null
+  },
+  "Description": "allows you to buy stuff while shop is open, with or without someone at the counter",
+  "UniqueID": "JarvieK.SelfService",
+  "EntryDll": "SelfService.dll"
+}
