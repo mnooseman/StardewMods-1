@@ -40,8 +40,8 @@ namespace SelfServe
         }
 
         private void KeyEventHandler(object sender, EventArgsKeyPressed e)
-        {
-            if (inited && OpenMenuHandler(e.KeyPressed.Equals(Keys.X)))
+        {   
+            if (inited && OpenMenuHandler(Array.Exists(Game1.options.actionButton, item => e.KeyPressed.Equals(item.key))))
             {
                 Game1.oldKBState = Keyboard.GetState();
             }
@@ -49,6 +49,13 @@ namespace SelfServe
 
         private void ControllerEventHandler(object sender, EventArgsControllerButtonPressed e)
         {
+            // NOTE: looks like the game has hard coded  button to key mappings, isActionKey() is subject to change if customized key mapipng is allowed in the future
+            // See code below:
+            //public static Keys mapGamePadButtonToKey(Buttons b)
+            //{
+            //    if (b == Buttons.A)
+            //        return Game1.options.getFirstKeyboardKeyFromInputButtonList(Game1.options.actionButton);
+
             if (inited && OpenMenuHandler(e.ButtonPressed.Equals(Buttons.A)))
             {
                 Game1.oldPadState = GamePad.GetState(PlayerIndex.One);
