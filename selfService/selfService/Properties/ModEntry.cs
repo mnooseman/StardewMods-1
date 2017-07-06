@@ -15,6 +15,7 @@ namespace SelfServe
         private List<Vector2> seedShopCounterTiles = new List<Vector2>();
         private List<Vector2> animalShopCounterTiles = new List<Vector2>();
         private List<Vector2> CarpentersShopCounterTiles = new List<Vector2>();
+        private Dictionary<String, NPC> npcRefs = new Dictionary<string, NPC>();
 
         private bool inited = false;
 
@@ -27,6 +28,23 @@ namespace SelfServe
             animalShopCounterTiles.Add(new Vector2(13f, 16f));
 
             CarpentersShopCounterTiles.Add(new Vector2(8f, 20f));
+
+            foreach(NPC npc in Utility.getAllCharacters())
+            {
+                switch (npc.name)
+                {
+                    case "Pierre":
+                    case "Robin":
+                    case "Marnie":
+                       npcRefs[npc.name] = npc;
+                        break;
+                }
+            }
+
+            foreach(var item in npcRefs)
+            {
+                Monitor.Log(item.ToString());
+            }
 
             this.inited = true;
         }
@@ -80,11 +98,34 @@ namespace SelfServe
                 switch (locationString)
                 {
                     case "SeedShop":
-                        Game1.activeClickableMenu = (IClickableMenu)new ShopMenu(Utility.getShopStock(true), 0, "Pierre");
+                        Game1.player.currentLocation.createQuestionDialogue(
+                            Game1.content.LoadString("Strings\\JarvieK_SelfService:SeedShop_Menu"),
+                            new Response[2]
+                            {
+                                new Response("Shop", Game1.content.LoadString("Strings\\JarvieK_SelfService:SeedShopMenu_Shop")),
+                                new Response("Leave", Game1.content.LoadString("Strings\\JarvieK_SelfService:SeedShopMenu_Leave"))
+                            },
+                            delegate(StardewValley.Farmer who, string whichAnswer)
+                            {
+                                switch (whichAnswer)
+                                {
+                                    case "Shop":
+                                        Game1.activeClickableMenu = (IClickableMenu)new ShopMenu(Utility.getShopStock(true), 0, "Pierre");
+                                        break;
+                                    case "Leave":
+                                        // do nothing
+                                        break;
+                                    default:
+                                        Monitor.Log($"invalid dialogue answer: {whichAnswer}", LogLevel.Info);
+                                        break;
+                                }
+                            }
+
+                        );
                         break;
                     case "AnimalShop":
                         Game1.player.currentLocation.createQuestionDialogue(
-                            "",
+                            Game1.content.LoadString("Strings\\JarvieK_SelfService:AnimalShop_Menu"),
                             new Response[3]
                             {
                                 new Response("Supplies", Game1.content.LoadString("Strings\\Locations:AnimalShop_Marnie_Supplies")),
@@ -114,7 +155,7 @@ namespace SelfServe
                                     new Response("Leave", Game1.content.LoadString("Strings\\Locations:ScienceHouse_CarpenterMenu_Leave"))
                                 };
 
-                            Game1.player.currentLocation.createQuestionDialogue(Game1.content.LoadString("Strings\\Locations:ScienceHouse_CarpenterMenu"), answerChoices, "carpenter");
+                            Game1.player.currentLocation.createQuestionDialogue(Game1.content.LoadString("Strings\\JarvieK_SelfService:ScienceHouse_CarpenterMenu"), answerChoices, "carpenter");
                         }
                         else
                         {
@@ -133,23 +174,29 @@ namespace SelfServe
 
         private bool ShouldOpen(bool isActionKey, int facingDirection, String locationString, Vector2 playerLocation)
         {
-            // Monitor.Log($"{locationString} {playerLocation.ToString()}");
+            Monitor.Log($"{locationString} {playerLocation.ToString()}");
+            bool result = false;
             if (Game1.activeClickableMenu == null && isActionKey && facingDirection == 3) // somehow SMAPI doesn't provide enum for facing directions?
             {
+                // TODO: refactor this part to avoid hard coded tile locations
                 switch (locationString)
                 {
                     case "SeedShop":
-                        return this.seedShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Pierre"].currentLocation.name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)) && this.seedShopCounterTiles.Contains(playerLocation);
+                        break;
                     case "AnimalShop":
-                        return this.animalShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Marnie"].currentLocation.name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)) && this.animalShopCounterTiles.Contains(playerLocation);
+                        break;
                     case "ScienceHouse":
-                        return this.CarpentersShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Robin"].currentLocation.name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)) && this.CarpentersShopCounterTiles.Contains(playerLocation);
+                        break;
                     default:
-                        return false;
+                        // Monitor.Log($"no shop at location {locationString}", LogLevel.Info);
+                        break;
                 }
             }
 
-            return false; // default
+            return result;
         }
     }
 }

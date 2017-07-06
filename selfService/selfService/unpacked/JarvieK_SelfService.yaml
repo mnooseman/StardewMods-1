@@ -1,0 +1,23 @@
+﻿
+xnbData: 
+    target: "w"
+    compressed: true
+    hiDef: true
+    readerData: 
+        - 
+            type: "Microsoft.Xna.Framework.Content.DictionaryReader`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"
+            version: 0
+
+        - 
+            type: "Microsoft.Xna.Framework.Content.StringReader"
+            version: 0
+
+
+    numSharedResources: 0
+
+content:  #!Dictionary<String,String>
+	SeedShop_Menu: "\"Wish I could have someone to help me restock shelves... Help yourself if there's anything you need\"" #!String
+    SeedShopMenu_Shop: "Shop" #!String
+    SeedShopMenu_Leave: "Leave" #!String
+	AnimalShop_Menu: "\"Sorry I got other things to do today, please leave money on the counter and help yourself!\"" #!String
+	ScienceHouse_CarpenterMenu: "\"I'm not at the shop right now, leave a message if you need anything.\"" #!String
