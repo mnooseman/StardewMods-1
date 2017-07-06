@@ -12,15 +12,23 @@ namespace SelfServe
 {
     public class ModEntry : Mod
     {
-        private List<Vector2> seedShopCounterTiles = new List<Vector2>();
-        private List<Vector2> animalShopCounterTiles = new List<Vector2>();
-        private List<Vector2> CarpentersShopCounterTiles = new List<Vector2>();
-        private Dictionary<String, NPC> npcRefs = new Dictionary<string, NPC>();
+        private List<Vector2> seedShopCounterTiles;
+        private List<Vector2> animalShopCounterTiles;
+        private List<Vector2> CarpentersShopCounterTiles;
+        private Dictionary<String, NPC> npcRefs;
 
         private bool inited = false;
 
         private void Bootstrap(object Sender, EventArgs e)
         {
+            // params reset
+            seedShopCounterTiles = new List<Vector2>();
+            animalShopCounterTiles = new List<Vector2>();
+            CarpentersShopCounterTiles = new List<Vector2>();
+            npcRefs = new Dictionary<string, NPC>();
+            inited = false;
+
+            // params setup
             seedShopCounterTiles.Add(new Vector2(4f, 19f));
             seedShopCounterTiles.Add(new Vector2(5f, 19f));
 
@@ -45,6 +53,8 @@ namespace SelfServe
             {
                 Monitor.Log(item.ToString());
             }
+
+            // done
 
             this.inited = true;
         }
@@ -174,7 +184,6 @@ namespace SelfServe
 
         private bool ShouldOpen(bool isActionKey, int facingDirection, String locationString, Vector2 playerLocation)
         {
-            Monitor.Log($"{locationString} {playerLocation.ToString()}");
             bool result = false;
             if (Game1.activeClickableMenu == null && isActionKey && facingDirection == 3) // somehow SMAPI doesn't provide enum for facing directions?
             {

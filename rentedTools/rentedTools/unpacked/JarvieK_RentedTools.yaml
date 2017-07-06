@@ -1,0 +1,27 @@
+﻿
+xnbData: 
+    target: "w"
+    compressed: true
+    hiDef: true
+    readerData: 
+        - 
+            type: "Microsoft.Xna.Framework.Content.DictionaryReader`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"
+            version: 0
+
+        - 
+            type: "Microsoft.Xna.Framework.Content.StringReader"
+            version: 0
+
+
+    numSharedResources: 0
+
+content:  #!Dictionary<String,String>
+    Blacksmith_RecycleTools_Menu: "Do you want to give me back those rented tools?" #!String
+    Blacksmith_RecycleToolsMenu_Confirm: "OK" #!String
+    Blacksmith_RecycleToolsMenu_Leave: "Not now" #!String
+    Blacksmith_OfferTools_Menu: "You can take my old {0} for 200g while I'm upgrading your {1}." #!String
+    Blacksmith_OfferToolsMenu_Confirm: "Sure!" #!String
+    Blacksmith_OfferToolsMenu_Leave: "No thanks" #!String
+    Blacksmith_NoInventorySpace: "Your inventory is full." #!String
+    Blacksmith_InsufficientFundsToRentTool: "You don't have enough money." #!String
+

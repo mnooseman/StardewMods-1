@@ -1,0 +1,13 @@
+﻿{
+  "Name": "Rented Tools",
+  "Author": "JarvieK",
+  "Version": {
+    "MajorVersion": 0,
+    "MinorVersion": 1,
+    "PatchVersion": 0,
+    "Build": null
+  },
+  "Description": "allows renting tools during upgrades",
+  "UniqueID": "JarvieK.RentedTools",
+  "EntryDll": "RentedTools.dll"
+}
