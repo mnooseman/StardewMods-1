@@ -50,11 +50,9 @@
     <Compile Include="Properties\ModEntry.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="i18n\default.json" />
     <None Include="packages.config" />
     <None Include="manifest.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="unpacked\JarvieK_SelfService.yaml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Pathoschild.Stardew.ModBuildConfig.1.6.0\build\Pathoschild.Stardew.ModBuildConfig.targets" Condition="Exists('..\packages\Pathoschild.Stardew.ModBuildConfig.1.6.0\build\Pathoschild.Stardew.ModBuildConfig.targets')" />

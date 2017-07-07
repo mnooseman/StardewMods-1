@@ -17,6 +17,8 @@ namespace SelfServe
         private List<Vector2> CarpentersShopCounterTiles;
         private Dictionary<String, NPC> npcRefs;
 
+        private ITranslationHelper i18n;
+
         private bool inited = false;
 
         private void Bootstrap(object Sender, EventArgs e)
@@ -65,6 +67,8 @@ namespace SelfServe
             ControlEvents.ControllerButtonPressed += this.ControllerEventHandler;
             // ControlEvents.MouseChanged += this.mouseEventHandler; // this would be too ugly to implement with current version of SMAPI
             SaveEvents.AfterLoad += this.Bootstrap;
+
+            i18n = helper.Translation;
         }
 
         private void KeyEventHandler(object sender, EventArgsKeyPressed e)
@@ -109,11 +113,11 @@ namespace SelfServe
                 {
                     case "SeedShop":
                         Game1.player.currentLocation.createQuestionDialogue(
-                            Game1.content.LoadString("Strings\\JarvieK_SelfService:SeedShop_Menu"),
+                            i18n.Get("SeedShop_Menu"),
                             new Response[2]
                             {
-                                new Response("Shop", Game1.content.LoadString("Strings\\JarvieK_SelfService:SeedShopMenu_Shop")),
-                                new Response("Leave", Game1.content.LoadString("Strings\\JarvieK_SelfService:SeedShopMenu_Leave"))
+                                new Response("Shop", i18n.Get("SeedShopMenu_Shop")),
+                                new Response("Leave", i18n.Get("SeedShopMenu_Leave"))
                             },
                             delegate(StardewValley.Farmer who, string whichAnswer)
                             {
@@ -135,7 +139,7 @@ namespace SelfServe
                         break;
                     case "AnimalShop":
                         Game1.player.currentLocation.createQuestionDialogue(
-                            Game1.content.LoadString("Strings\\JarvieK_SelfService:AnimalShop_Menu"),
+                            i18n.Get("AnimalShop_Menu"),
                             new Response[3]
                             {
                                 new Response("Supplies", Game1.content.LoadString("Strings\\Locations:AnimalShop_Marnie_Supplies")),
@@ -165,7 +169,7 @@ namespace SelfServe
                                     new Response("Leave", Game1.content.LoadString("Strings\\Locations:ScienceHouse_CarpenterMenu_Leave"))
                                 };
 
-                            Game1.player.currentLocation.createQuestionDialogue(Game1.content.LoadString("Strings\\JarvieK_SelfService:ScienceHouse_CarpenterMenu"), answerChoices, "carpenter");
+                            Game1.player.currentLocation.createQuestionDialogue(i18n.Get("ScienceHouse_CarpenterMenu"), answerChoices, "carpenter");
                         }
                         else
                         {
