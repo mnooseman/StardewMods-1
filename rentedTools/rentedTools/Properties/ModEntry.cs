@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Dynamic;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -10,26 +11,31 @@ using StardewValley.Menus;
 
 namespace RentedTools
 {   
+    // NOTE: one might want to implement a static class `bool IsRentedTool(Item)` so some code can be reused
+
     public class ModEntry : Mod
     {
         private bool inited;
         private StardewValley.Farmer player;
         private NPC blacksmithNpc;
-        private bool shuoldCreateFailedToRentTools;
+        private bool shouldCreateFailedToRentTools;
+        private bool shouldCreateSucceededToRentTools;
         private bool rentedToolsOffered;
         private bool recycleOffered;
 
         private Dictionary<Tuple<List<Item>, int>, Item> rentedToolRefs;
+
+        private ITranslationHelper i18n;
 
 
         private List<Vector2> blackSmithCounterTiles = new List<Vector2>();
 
         public override void Entry(IModHelper helper)
         {
-            SaveEvents.BeforeSave += this.BeforeSaveHandler;
-            SaveEvents.AfterSave += this.AfterSaveHandler;
             SaveEvents.AfterLoad += this.Bootstrap;
             MenuEvents.MenuClosed += this.MenuCloseHandler;
+
+            this.i18n = helper.Translation;
         }
 
         private void Bootstrap(object sender, EventArgs e)
@@ -39,7 +45,8 @@ namespace RentedTools
             this.player = null;
             this.blacksmithNpc = null;
 
-            this.shuoldCreateFailedToRentTools = false;
+            this.shouldCreateFailedToRentTools = false;
+            this.shouldCreateSucceededToRentTools = false;
             this.rentedToolsOffered = false;
             this.recycleOffered = false;
 
@@ -69,11 +76,17 @@ namespace RentedTools
 
         private void MenuCloseHandler(object sender, EventArgsClickableMenuClosed e)
         {
-
-            if (this.shuoldCreateFailedToRentTools)
+            if (this.shouldCreateFailedToRentTools)
             {
                 this.SetupFailedToRentDialog(this.player);
-                this.shuoldCreateFailedToRentTools = false;
+                this.shouldCreateFailedToRentTools = false;
+                return;
+            }
+
+            if (this.shouldCreateSucceededToRentTools)
+            {
+                this.SetupSucceededToRentDialog(this.player);
+                this.shouldCreateSucceededToRentTools = false;
                 return;
             }
 
@@ -91,7 +104,7 @@ namespace RentedTools
             
             if (this.inited && this.IsPlayerAtCounter(this.player))
             {
-                if (this.ShouldRecycleTools(this.player))
+                if (this.player.toolBeingUpgraded == null && this.HasRentedTools(this.player))
                 {
                     this.SetupRentToolsRemovalDialog(this.player);
                 }
@@ -107,38 +120,31 @@ namespace RentedTools
             return who.currentLocation.name == "Blacksmith" && this.blackSmithCounterTiles.Contains(who.getTileLocation());
         }
 
-        private bool ShouldRecycleTools(StardewValley.Farmer who)
+        private bool HasRentedTools(StardewValley.Farmer who)
         {
+            // Should recycle if:
+            // (there's no tool being upgraded) and (there are tools of the same type)
             bool result = false;
 
             List<Item> inventory = who.items;
-            List<Item> tools = inventory
+            List<Item> _tools = inventory
                 .Where(tool => tool is Axe || tool is Pickaxe || tool is WateringCan || tool is Hoe)
                 .ToList();
-            List<Item> rentedTools = inventory
-                .Where(tool => tool is IRentedTool)
-                .ToList();
 
-            if (rentedTools.Any())
+            List<Tool> tools = _tools.Cast<Tool>().ToList();
+
+            if (who.toolBeingUpgraded != null)
             {
-                if (who.toolBeingUpgraded == null)
+                result = tools.Exists(item => item.GetType().IsAssignableFrom(who.toolBeingUpgraded.GetType()));
+            }
+            else
+            {
+                foreach (Tool tool in tools)
                 {
-                    result = true;
-                }
-                else
-                {
-                    foreach (Item item in rentedTools)
+                    if (tools.Exists(item => item.GetType().IsAssignableFrom(tool.GetType()) && item.upgradeLevel < tool.upgradeLevel))
                     {
-                        if (
-                            (item is RentedAxe && tools.Contains(new Axe())) ||
-                            (item is RentedPickaxe && tools.Contains(new Pickaxe())) ||
-                            (item is RentedWateringCan && tools.Contains(new WateringCan())) ||
-                            (item is RentedHoe && tools.Contains(new Hoe()))
-                           )
-                        {
-                            result = true;
-                            break;
-                        }
+                        result = true;
+                        break;
                     }
                 }
             }
@@ -148,25 +154,17 @@ namespace RentedTools
 
         private bool ShouldOfferTools(StardewValley.Farmer who)
         {
-            List<Item> inventory = who.items;
-            List<Item> tools = inventory
-                .Where(tool => tool is Axe || tool is Pickaxe || tool is WateringCan || tool is Hoe)
-                .ToList();
-            List<Item> rentedTools = inventory
-                .Where(tool => tool is IRentedTool)
-                .ToList();
-
-            return (!rentedToolsOffered && who.toolBeingUpgraded != null && !rentedTools.Any());
+            return (who.toolBeingUpgraded != null && !this.HasRentedTools(who));
         }
 
         private void SetupRentToolsRemovalDialog(StardewValley.Farmer who)
         {
             who.currentLocation.createQuestionDialogue(
-                Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_RecycleTools_Menu"),
+                i18n.Get("Blacksmith_RecycleTools_Menu"),
                 new Response[2]
                 {
-                    new Response("Confirm", Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_RecycleToolsMenu_Confirm")),
-                    new Response("Leave", Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_RecycleToolsMenu_Leave")),
+                    new Response("Confirm", i18n.Get("Blacksmith_RecycleToolsMenu_Confirm")),
+                    new Response("Leave", i18n.Get("Blacksmith_RecycleToolsMenu_Leave")),
                 },
                 (StardewValley.Farmer whoInCallback, String whichAnswer) =>
                 {
@@ -189,14 +187,16 @@ namespace RentedTools
         private void SetupRentToolsOfferDialog(StardewValley.Farmer who)
         {
             who.currentLocation.createQuestionDialogue(
-                Game1.content.LoadString(
-                    "Strings\\JarvieK_RentedTools:Blacksmith_OfferTools_Menu",
-                    GetRentedToolByTool(who.toolBeingUpgraded).DisplayName, who.toolBeingUpgraded.DisplayName
-                ),
+                i18n.Get("Blacksmith_OfferTools_Menu",
+                new
+                {
+                    oldToolName = GetRentedToolByTool(who.toolBeingUpgraded).DisplayName,
+                    newToolName = who.toolBeingUpgraded.DisplayName
+                }),
                 new Response[2]
                 {
-                    new Response("Confirm", Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_OfferToolsMenu_Confirm")),
-                    new Response("Leave", Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_OfferToolsMenu_Leave")),
+                    new Response("Confirm", i18n.Get("Blacksmith_OfferToolsMenu_Confirm")),
+                    new Response("Leave", i18n.Get("Blacksmith_OfferToolsMenu_Leave")),
                 },
                 (StardewValley.Farmer whoInCallback, String whichAnswer) =>
                 {
@@ -216,36 +216,40 @@ namespace RentedTools
             rentedToolsOffered = true;
         }
 
+        private void SetupSucceededToRentDialog(StardewValley.Farmer who)
+        {
+            i18n.Get("Blacksmith_HowToReturn");
+        }
+
         private void SetupFailedToRentDialog(StardewValley.Farmer who)
         {
             if (who.freeSpotsInInventory() <= 0)
             {
-                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_NoInventorySpace"));
+                Game1.drawObjectDialogue(i18n.Get("Blacksmith_NoInventorySpace"));
             }
             else
             {
-                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\JarvieK_RentedTools:Blacksmith_InsufficientFundsToRentTool"));
+                Game1.drawObjectDialogue(i18n.Get("Blacksmith_InsufficientFundsToRentTool"));
             }
-            
         }
 
         private Tool GetRentedToolByTool(Item tool)
         {
             if (tool is Axe)
             {
-                return new RentedAxe();
+                return new Axe();
             }
             else if (tool is Pickaxe)
             {
-                return new RentedPickaxe();
+                return new Pickaxe();
             }
             else if (tool is WateringCan)
             {
-                return new RentedWateringCan();
+                return new WateringCan();
             }
             else if (tool is Hoe)
             {
-                return new RentedHoe();
+                return new Hoe();
             }
             else
             {
@@ -275,10 +279,11 @@ namespace RentedTools
             {
                 ShopMenu.chargePlayer(who, 0, toolCost);
                 who.addItemToInventory(toolToBuy);
+                this.shouldCreateSucceededToRentTools = true;
             }
             else
             {
-                this.shuoldCreateFailedToRentTools = true;
+                this.shouldCreateFailedToRentTools = true;
             }
 
         }
@@ -286,6 +291,28 @@ namespace RentedTools
         private void RecycleTempTools(StardewValley.Farmer who)
         {
             // recycle all rented tools
+
+            List<Item> inventory = who.items;
+            List<Item> _tools = inventory
+                .Where(tool => tool is Axe || tool is Pickaxe || tool is WateringCan || tool is Hoe)
+                .ToList();
+
+            List<Tool> tools = _tools.Cast<Tool>().ToList();
+
+            foreach (Tool tool in tools)
+            {
+                if (tools.Exists(item => tool.GetType().IsAssignableFrom(item.GetType()) && tool.upgradeLevel < item.upgradeLevel))
+                {
+                    who.removeItemFromInventory(tool);
+                }
+            }
+
+            return;
+
+
+            // NOTE: not using custom type anymore
+
+            /*
 
             while (who.items.Any(item => item is IRentedTool))
             {
@@ -297,10 +324,9 @@ namespace RentedTools
                         break;
                     }
                 }
-
             }
 
-            
+            */
         }
 
         private int GetToolCost(Item tool)
@@ -309,6 +335,9 @@ namespace RentedTools
             return 200;
         }
 
+        // NOTE: not using the custom type anymore
+
+        /* 
         private void BeforeSaveHandler(object sender, EventArgs e)
         {
             rentedToolRefs.Clear();
@@ -370,5 +399,7 @@ namespace RentedTools
 
             rentedToolRefs.Clear();
         }
+
+        */
     }
 }

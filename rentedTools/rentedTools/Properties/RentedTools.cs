@@ -42,7 +42,7 @@ namespace RentedTools
     {
         public RentedWateringCan() : base()
         {
-            this.name = "RentedWateringCan";
+            // this.name = "RentedWateringCan";
         }
     }
 }
