@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Dynamic;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Tools;
 using StardewValley.Menus;
+using StardewValley.Tools;
 
 namespace RentedTools
-{   
+{
     // NOTE: one might want to implement a static class `bool IsRentedTool(Item)` so some code can be reused
 
     public class ModEntry : Mod
     {
         private bool inited;
-        private StardewValley.Farmer player;
+        private Farmer player;
         private NPC blacksmithNpc;
         private bool shouldCreateFailedToRentTools;
         private bool shouldCreateSucceededToRentTools;
@@ -56,9 +55,9 @@ namespace RentedTools
             // params init
             this.player = Game1.player;
             this.blackSmithCounterTiles.Add(new Vector2(3f, 15f));
-            foreach(NPC npc in Utility.getAllCharacters())
+            foreach (NPC npc in Utility.getAllCharacters())
             {
-                if (npc.name == "Clint")
+                if (npc.Name == "Clint")
                 {
                     this.blacksmithNpc = npc;
                     break;
@@ -101,7 +100,7 @@ namespace RentedTools
                 this.recycleOffered = false;
                 return;
             }
-            
+
             if (this.inited && this.IsPlayerAtCounter(this.player))
             {
                 if (this.player.toolBeingUpgraded == null && this.HasRentedTools(this.player))
@@ -115,33 +114,32 @@ namespace RentedTools
             }
         }
 
-        private bool IsPlayerAtCounter(StardewValley.Farmer who)
+        private bool IsPlayerAtCounter(Farmer who)
         {
-            return who.currentLocation.name == "Blacksmith" && this.blackSmithCounterTiles.Contains(who.getTileLocation());
+            return who.currentLocation.Name == "Blacksmith" && this.blackSmithCounterTiles.Contains(who.getTileLocation());
         }
 
-        private bool HasRentedTools(StardewValley.Farmer who)
+        private bool HasRentedTools(Farmer who)
         {
             // Should recycle if:
             // (there's no tool being upgraded) and (there are tools of the same type)
             bool result = false;
 
-            List<Item> inventory = who.items;
-            List<Item> _tools = inventory
+            IList<Item> inventory = who.Items;
+            List<Tool> tools = inventory
                 .Where(tool => tool is Axe || tool is Pickaxe || tool is WateringCan || tool is Hoe)
+                .OfType<Tool>()
                 .ToList();
-
-            List<Tool> tools = _tools.Cast<Tool>().ToList();
 
             if (who.toolBeingUpgraded != null)
             {
-                result = tools.Exists(item => item.GetType().IsAssignableFrom(who.toolBeingUpgraded.GetType()));
+                result = tools.Exists(item => item.GetType().IsInstanceOfType(who.toolBeingUpgraded));
             }
             else
             {
                 foreach (Tool tool in tools)
                 {
-                    if (tools.Exists(item => item.GetType().IsAssignableFrom(tool.GetType()) && item.upgradeLevel < tool.upgradeLevel))
+                    if (tools.Exists(item => item.GetType().IsInstanceOfType(tool) && item.UpgradeLevel < tool.UpgradeLevel))
                     {
                         result = true;
                         break;
@@ -152,12 +150,12 @@ namespace RentedTools
             return result;
         }
 
-        private bool ShouldOfferTools(StardewValley.Farmer who)
+        private bool ShouldOfferTools(Farmer who)
         {
             return (who.toolBeingUpgraded != null && !this.HasRentedTools(who));
         }
 
-        private void SetupRentToolsRemovalDialog(StardewValley.Farmer who)
+        private void SetupRentToolsRemovalDialog(Farmer who)
         {
             who.currentLocation.createQuestionDialogue(
                 i18n.Get("Blacksmith_RecycleTools_Menu"),
@@ -166,7 +164,7 @@ namespace RentedTools
                     new Response("Confirm", i18n.Get("Blacksmith_RecycleToolsMenu_Confirm")),
                     new Response("Leave", i18n.Get("Blacksmith_RecycleToolsMenu_Leave")),
                 },
-                (StardewValley.Farmer whoInCallback, String whichAnswer) =>
+                (Farmer whoInCallback, string whichAnswer) =>
                 {
                     switch (whichAnswer)
                     {
@@ -184,7 +182,7 @@ namespace RentedTools
             this.recycleOffered = true;
         }
 
-        private void SetupRentToolsOfferDialog(StardewValley.Farmer who)
+        private void SetupRentToolsOfferDialog(Farmer who)
         {
             who.currentLocation.createQuestionDialogue(
                 i18n.Get("Blacksmith_OfferTools_Menu",
@@ -198,7 +196,7 @@ namespace RentedTools
                     new Response("Confirm", i18n.Get("Blacksmith_OfferToolsMenu_Confirm")),
                     new Response("Leave", i18n.Get("Blacksmith_OfferToolsMenu_Leave")),
                 },
-                (StardewValley.Farmer whoInCallback, String whichAnswer) =>
+                (Farmer whoInCallback, string whichAnswer) =>
                 {
                     switch (whichAnswer)
                     {
@@ -216,12 +214,12 @@ namespace RentedTools
             rentedToolsOffered = true;
         }
 
-        private void SetupSucceededToRentDialog(StardewValley.Farmer who)
+        private void SetupSucceededToRentDialog(Farmer who)
         {
             i18n.Get("Blacksmith_HowToReturn");
         }
 
-        private void SetupFailedToRentDialog(StardewValley.Farmer who)
+        private void SetupFailedToRentDialog(Farmer who)
         {
             if (who.freeSpotsInInventory() <= 0)
             {
@@ -258,22 +256,20 @@ namespace RentedTools
             }
         }
 
-        private void BuyTempTool(StardewValley.Farmer who)
+        private void BuyTempTool(Farmer who)
         {
             // NOTE: there's no thread safe method for money transactions, so I suppose the game doesn't care about it as well?
-            Item toolToBuy;
-            int toolCost;
 
             // TODO: handle upgradeLevel so rented tool is not always the cheapest
 
-            toolToBuy = this.GetRentedToolByTool(who.toolBeingUpgraded);
+            Item toolToBuy = this.GetRentedToolByTool(who.toolBeingUpgraded);
 
             if (toolToBuy == null)
             {
                 return;
             }
 
-            toolCost = this.GetToolCost(toolToBuy);
+            int toolCost = this.GetToolCost(toolToBuy);
 
             if (who.money >= toolCost && who.freeSpotsInInventory() > 0)
             {
@@ -288,20 +284,19 @@ namespace RentedTools
 
         }
 
-        private void RecycleTempTools(StardewValley.Farmer who)
+        private void RecycleTempTools(Farmer who)
         {
             // recycle all rented tools
 
-            List<Item> inventory = who.items;
-            List<Item> _tools = inventory
+            IList<Item> inventory = who.Items;
+            List<Tool> tools = inventory
                 .Where(tool => tool is Axe || tool is Pickaxe || tool is WateringCan || tool is Hoe)
+                .OfType<Tool>()
                 .ToList();
-
-            List<Tool> tools = _tools.Cast<Tool>().ToList();
 
             foreach (Tool tool in tools)
             {
-                if (tools.Exists(item => tool.GetType().IsAssignableFrom(item.GetType()) && tool.upgradeLevel < item.upgradeLevel))
+                if (tools.Exists(item => tool.GetType().IsInstanceOfType(item) && tool.UpgradeLevel < item.UpgradeLevel))
                 {
                     who.removeItemFromInventory(tool);
                 }

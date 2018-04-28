@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewValley;
-using StardewValley.Tools;
+﻿using StardewValley.Tools;
 
 namespace RentedTools
 {
@@ -16,17 +9,17 @@ namespace RentedTools
 
     public class RentedAxe : Axe, IRentedTool
     {
-        public RentedAxe() : base()
+        public RentedAxe()
         {
-            this.name = "RentedAxe";
+            this.Name = "RentedAxe";
         }
     }
 
     public class RentedPickaxe : Pickaxe, IRentedTool
     {
-        public RentedPickaxe() : base()
+        public RentedPickaxe()
         {
-            this.name = "RentedPickaxe";
+            this.Name = "RentedPickaxe";
         }
     }
 
@@ -34,15 +27,15 @@ namespace RentedTools
     {
         public RentedHoe() : base()
         {
-            this.name = "RentedHoe";
+            this.Name = "RentedHoe";
         }
     }
 
     public class RentedWateringCan : WateringCan, IRentedTool
     {
-        public RentedWateringCan() : base()
+        public RentedWateringCan()
         {
-            // this.name = "RentedWateringCan";
+            // this.Name = "RentedWateringCan";
         }
     }
 }

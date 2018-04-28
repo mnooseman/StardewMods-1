@@ -41,12 +41,12 @@ namespace SelfServe
 
             foreach(NPC npc in Utility.getAllCharacters())
             {
-                switch (npc.name)
+                switch (npc.Name)
                 {
                     case "Pierre":
                     case "Robin":
                     case "Marnie":
-                       npcRefs[npc.name] = npc;
+                       npcRefs[npc.Name] = npc;
                         break;
                 }
             }
@@ -98,7 +98,7 @@ namespace SelfServe
         {
             // returns true if menu is opened, otherwise false
 
-            String locationString = Game1.player.currentLocation.name;
+            String locationString = Game1.player.currentLocation.Name;
             Vector2 playerPosition = Game1.player.getTileLocation();
             int faceDirection = Game1.player.getFacingDirection();
 
@@ -153,7 +153,7 @@ namespace SelfServe
                         if (Game1.player.daysUntilHouseUpgrade < 0 && !Game1.getFarm().isThereABuildingUnderConstruction())
                         {
                             Response[] answerChoices;
-                            if (Game1.player.houseUpgradeLevel < 3)
+                            if (Game1.player.HouseUpgradeLevel < 3)
                                 answerChoices = new Response[4]
                                 {
                                     new Response("Shop", Game1.content.LoadString("Strings\\Locations:ScienceHouse_CarpenterMenu_Shop")),
@@ -195,13 +195,13 @@ namespace SelfServe
                 switch (locationString)
                 {
                     case "SeedShop":
-                        result = npcRefs["Pierre"].currentLocation.name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)) && this.seedShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Pierre"].currentLocation.Name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)) && this.seedShopCounterTiles.Contains(playerLocation);
                         break;
                     case "AnimalShop":
-                        result = npcRefs["Marnie"].currentLocation.name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)) && this.animalShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Marnie"].currentLocation.Name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)) && this.animalShopCounterTiles.Contains(playerLocation);
                         break;
                     case "ScienceHouse":
-                        result = npcRefs["Robin"].currentLocation.name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)) && this.CarpentersShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Robin"].currentLocation.Name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)) && this.CarpentersShopCounterTiles.Contains(playerLocation);
                         break;
                     default:
                         // Monitor.Log($"no shop at location {locationString}", LogLevel.Info);
