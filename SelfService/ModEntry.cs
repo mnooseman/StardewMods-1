@@ -1,12 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
-// using System.Threading.Tasks;
 
 namespace SelfServe
 {
@@ -63,35 +61,16 @@ namespace SelfServe
 
         public override void Entry(IModHelper helper)
         {
-            ControlEvents.KeyPressed += this.KeyEventHandler;
-            ControlEvents.ControllerButtonPressed += this.ControllerEventHandler;
-            // ControlEvents.MouseChanged += this.mouseEventHandler; // this would be too ugly to implement with current version of SMAPI
+            InputEvents.ButtonPressed += this.InputEvents_ButtonPressed;
             SaveEvents.AfterLoad += this.Bootstrap;
 
             i18n = helper.Translation;
         }
 
-        private void KeyEventHandler(object sender, EventArgsKeyPressed e)
-        {   
-            if (inited && OpenMenuHandler(Array.Exists(Game1.options.actionButton, item => e.KeyPressed.Equals(item.key))))
-            {
-                Game1.oldKBState = Keyboard.GetState();
-            }
-        }
-
-        private void ControllerEventHandler(object sender, EventArgsControllerButtonPressed e)
+        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
         {
-            // NOTE: looks like the game has hard coded  button to key mappings, isActionKey() is subject to change if customized key mapipng is allowed in the future
-            // See code below:
-            //public static Keys mapGamePadButtonToKey(Buttons b)
-            //{
-            //    if (b == Buttons.A)
-            //        return Game1.options.getFirstKeyboardKeyFromInputButtonList(Game1.options.actionButton);
-
-            if (inited && OpenMenuHandler(e.ButtonPressed.Equals(Buttons.A)))
-            {
-                Game1.oldPadState = GamePad.GetState(PlayerIndex.One);
-            }
+            if (this.inited && this.OpenMenuHandler(e.IsActionButton))
+                e.SuppressButton();
         }
 
         private bool OpenMenuHandler(bool isActionKey)
