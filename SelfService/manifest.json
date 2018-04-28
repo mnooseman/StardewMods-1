@@ -1,10 +1,10 @@
 {
   "Name": "Self Service",
   "Author": "Jarvie.K",
-  "Version": "0.2.1",
+  "Version": "0.3.0",
   "Description": "allows you to buy stuff while shop is open, with or without someone at the counter",
   "UniqueID": "JarvieK.SelfService",
   "EntryDll": "SelfService.dll",
-  "MinimumApiVersion": "2.0",
+  "MinimumApiVersion": "2.6-beta",
   "UpdateKeys": [ "Nexus:1304" ]
 }
