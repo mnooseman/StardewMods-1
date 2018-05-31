@@ -1,12 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
-// using System.Threading.Tasks;
 
 namespace SelfServe
 {
@@ -41,12 +39,12 @@ namespace SelfServe
 
             foreach(NPC npc in Utility.getAllCharacters())
             {
-                switch (npc.name)
+                switch (npc.Name)
                 {
                     case "Pierre":
                     case "Robin":
                     case "Marnie":
-                       npcRefs[npc.name] = npc;
+                       npcRefs[npc.Name] = npc;
                         break;
                 }
             }
@@ -63,42 +61,23 @@ namespace SelfServe
 
         public override void Entry(IModHelper helper)
         {
-            ControlEvents.KeyPressed += this.KeyEventHandler;
-            ControlEvents.ControllerButtonPressed += this.ControllerEventHandler;
-            // ControlEvents.MouseChanged += this.mouseEventHandler; // this would be too ugly to implement with current version of SMAPI
+            InputEvents.ButtonPressed += this.InputEvents_ButtonPressed;
             SaveEvents.AfterLoad += this.Bootstrap;
 
             i18n = helper.Translation;
         }
 
-        private void KeyEventHandler(object sender, EventArgsKeyPressed e)
-        {   
-            if (inited && OpenMenuHandler(Array.Exists(Game1.options.actionButton, item => e.KeyPressed.Equals(item.key))))
-            {
-                Game1.oldKBState = Keyboard.GetState();
-            }
-        }
-
-        private void ControllerEventHandler(object sender, EventArgsControllerButtonPressed e)
+        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
         {
-            // NOTE: looks like the game has hard coded  button to key mappings, isActionKey() is subject to change if customized key mapipng is allowed in the future
-            // See code below:
-            //public static Keys mapGamePadButtonToKey(Buttons b)
-            //{
-            //    if (b == Buttons.A)
-            //        return Game1.options.getFirstKeyboardKeyFromInputButtonList(Game1.options.actionButton);
-
-            if (inited && OpenMenuHandler(e.ButtonPressed.Equals(Buttons.A)))
-            {
-                Game1.oldPadState = GamePad.GetState(PlayerIndex.One);
-            }
+            if (this.inited && this.OpenMenuHandler(e.IsActionButton))
+                e.SuppressButton();
         }
 
         private bool OpenMenuHandler(bool isActionKey)
         {
             // returns true if menu is opened, otherwise false
 
-            String locationString = Game1.player.currentLocation.name;
+            String locationString = Game1.player.currentLocation.Name;
             Vector2 playerPosition = Game1.player.getTileLocation();
             int faceDirection = Game1.player.getFacingDirection();
 
@@ -153,7 +132,7 @@ namespace SelfServe
                         if (Game1.player.daysUntilHouseUpgrade < 0 && !Game1.getFarm().isThereABuildingUnderConstruction())
                         {
                             Response[] answerChoices;
-                            if (Game1.player.houseUpgradeLevel < 3)
+                            if (Game1.player.HouseUpgradeLevel < 3)
                                 answerChoices = new Response[4]
                                 {
                                     new Response("Shop", Game1.content.LoadString("Strings\\Locations:ScienceHouse_CarpenterMenu_Shop")),
@@ -195,13 +174,13 @@ namespace SelfServe
                 switch (locationString)
                 {
                     case "SeedShop":
-                        result = npcRefs["Pierre"].currentLocation.name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)) && this.seedShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Pierre"].currentLocation.Name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)) && this.seedShopCounterTiles.Contains(playerLocation);
                         break;
                     case "AnimalShop":
-                        result = npcRefs["Marnie"].currentLocation.name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)) && this.animalShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Marnie"].currentLocation.Name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)) && this.animalShopCounterTiles.Contains(playerLocation);
                         break;
                     case "ScienceHouse":
-                        result = npcRefs["Robin"].currentLocation.name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)) && this.CarpentersShopCounterTiles.Contains(playerLocation);
+                        result = npcRefs["Robin"].currentLocation.Name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)) && this.CarpentersShopCounterTiles.Contains(playerLocation);
                         break;
                     default:
                         // Monitor.Log($"no shop at location {locationString}", LogLevel.Info);
