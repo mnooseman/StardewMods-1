@@ -174,13 +174,13 @@ namespace SelfServe
                 switch (locationString)
                 {
                     case "SeedShop":
-                        result = npcRefs["Pierre"].currentLocation.Name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)) && this.seedShopCounterTiles.Contains(playerLocation);
+                        result = this.seedShopCounterTiles.Contains(playerLocation) && (npcRefs["Pierre"].currentLocation.Name != locationString || !npcRefs["Pierre"].getTileLocation().Equals(new Vector2(4f, 17f)));
                         break;
                     case "AnimalShop":
-                        result = npcRefs["Marnie"].currentLocation.Name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)) && this.animalShopCounterTiles.Contains(playerLocation);
+                        result = this.animalShopCounterTiles.Contains(playerLocation) && (npcRefs["Marnie"].currentLocation.Name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)));
                         break;
                     case "ScienceHouse":
-                        result = npcRefs["Robin"].currentLocation.Name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)) && this.CarpentersShopCounterTiles.Contains(playerLocation);
+                        result = this.CarpentersShopCounterTiles.Contains(playerLocation) && (npcRefs["Robin"].currentLocation.Name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)));
                         break;
                     default:
                         // Monitor.Log($"no shop at location {locationString}", LogLevel.Info);
