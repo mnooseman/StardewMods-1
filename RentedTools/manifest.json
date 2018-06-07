@@ -1,7 +1,7 @@
 ﻿{
   "Name": "Rented Tools",
   "Author": "JarvieK",
-  "Version": "1.2.0",
+  "Version": "1.2.1",
   "Description": "allows renting tools during upgrades",
   "UniqueID": "JarvieK.RentedTools",
   "EntryDll": "RentedTools.dll",
