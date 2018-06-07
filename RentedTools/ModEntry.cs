@@ -73,6 +73,11 @@ namespace RentedTools
             this.inited = true;
         }
 
+        private Tool GetToolBeingUpgraded(Farmer who)
+        {
+            return who.toolBeingUpgraded.Value;
+        }
+
         private void MenuCloseHandler(object sender, EventArgsClickableMenuClosed e)
         {
             if (this.shouldCreateFailedToRentTools)
@@ -103,7 +108,7 @@ namespace RentedTools
 
             if (this.inited && this.IsPlayerAtCounter(this.player))
             {
-                if (this.player.toolBeingUpgraded == null && this.HasRentedTools(this.player))
+                if (this.player.toolBeingUpgraded.Value == null && this.HasRentedTools(this.player))
                 {
                     this.SetupRentToolsRemovalDialog(this.player);
                 }
@@ -131,9 +136,9 @@ namespace RentedTools
                 .OfType<Tool>()
                 .ToList();
 
-            if (who.toolBeingUpgraded != null)
+            if (GetToolBeingUpgraded(who) != null)
             {
-                result = tools.Exists(item => item.GetType().IsInstanceOfType(who.toolBeingUpgraded));
+                result = tools.Exists(item => item.GetType().IsInstanceOfType(this.GetToolBeingUpgraded(who)));
             }
             else
             {
@@ -152,7 +157,7 @@ namespace RentedTools
 
         private bool ShouldOfferTools(Farmer who)
         {
-            return (who.toolBeingUpgraded != null && !this.HasRentedTools(who));
+            return (GetToolBeingUpgraded(who) != null && !this.HasRentedTools(who));
         }
 
         private void SetupRentToolsRemovalDialog(Farmer who)
@@ -188,8 +193,8 @@ namespace RentedTools
                 i18n.Get("Blacksmith_OfferTools_Menu",
                 new
                 {
-                    oldToolName = GetRentedToolByTool(who.toolBeingUpgraded).DisplayName,
-                    newToolName = who.toolBeingUpgraded.DisplayName
+                    oldToolName = GetRentedToolByTool(GetToolBeingUpgraded(who))?.DisplayName,
+                    newToolName = GetToolBeingUpgraded(who)?.DisplayName
                 }),
                 new Response[2]
                 {
@@ -251,7 +256,7 @@ namespace RentedTools
             }
             else
             {
-                Monitor.Log($"unsupported upgradable tool: {tool.ToString()}");
+                Monitor.Log($"unsupported upgradable tool: {tool?.ToString()}");
                 return null;
             }
         }
@@ -262,7 +267,7 @@ namespace RentedTools
 
             // TODO: handle upgradeLevel so rented tool is not always the cheapest
 
-            Item toolToBuy = this.GetRentedToolByTool(who.toolBeingUpgraded);
+            Item toolToBuy = this.GetRentedToolByTool(GetToolBeingUpgraded(who));
 
             if (toolToBuy == null)
             {
