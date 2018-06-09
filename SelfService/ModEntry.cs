@@ -59,10 +59,16 @@ namespace SelfServe
             this.inited = true;
         }
 
+        private void Cleanup(object Sender, EventArgs e)
+        {
+            inited = false;
+        }
+
         public override void Entry(IModHelper helper)
         {
             InputEvents.ButtonPressed += this.InputEvents_ButtonPressed;
             SaveEvents.AfterLoad += this.Bootstrap;
+            SaveEvents.AfterReturnToTitle += this.Cleanup;
 
             i18n = helper.Translation;
         }
