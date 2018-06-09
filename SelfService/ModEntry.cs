@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using System;
@@ -12,19 +13,22 @@ namespace SelfServe
     {
         private List<Vector2> seedShopCounterTiles;
         private List<Vector2> animalShopCounterTiles;
-        private List<Vector2> CarpentersShopCounterTiles;
+        private List<Vector2> carpentersShopCounterTiles;
+        private List<Vector2> fishShopShopCounterTiles;
         private Dictionary<String, NPC> npcRefs;
 
         private ITranslationHelper i18n;
 
         private bool inited = false;
 
-        private void Bootstrap(object Sender, EventArgs e)
+        private void OnLoad(object Sender, EventArgs e)
         {
             // params reset
             seedShopCounterTiles = new List<Vector2>();
             animalShopCounterTiles = new List<Vector2>();
-            CarpentersShopCounterTiles = new List<Vector2>();
+            carpentersShopCounterTiles = new List<Vector2>();
+            fishShopShopCounterTiles = new List<Vector2>();
+
             npcRefs = new Dictionary<string, NPC>();
             inited = false;
 
@@ -35,15 +39,20 @@ namespace SelfServe
             animalShopCounterTiles.Add(new Vector2(12f, 16f));
             animalShopCounterTiles.Add(new Vector2(13f, 16f));
 
-            CarpentersShopCounterTiles.Add(new Vector2(8f, 20f));
+            carpentersShopCounterTiles.Add(new Vector2(8f, 20f));
 
-            foreach(NPC npc in Utility.getAllCharacters())
+            fishShopShopCounterTiles.Add(new Vector2(4f, 6f));
+            fishShopShopCounterTiles.Add(new Vector2(5f, 6f));
+            fishShopShopCounterTiles.Add(new Vector2(6f, 6f));
+
+            foreach (NPC npc in Utility.getAllCharacters())
             {
                 switch (npc.Name)
                 {
                     case "Pierre":
                     case "Robin":
                     case "Marnie":
+                    case "Willy":
                        npcRefs[npc.Name] = npc;
                         break;
                 }
@@ -59,7 +68,7 @@ namespace SelfServe
             this.inited = true;
         }
 
-        private void Cleanup(object Sender, EventArgs e)
+        private void OnExit(object Sender, EventArgs e)
         {
             inited = false;
         }
@@ -67,8 +76,8 @@ namespace SelfServe
         public override void Entry(IModHelper helper)
         {
             InputEvents.ButtonPressed += this.InputEvents_ButtonPressed;
-            SaveEvents.AfterLoad += this.Bootstrap;
-            SaveEvents.AfterReturnToTitle += this.Cleanup;
+            SaveEvents.AfterLoad += this.OnLoad;
+            SaveEvents.AfterReturnToTitle += this.OnExit;
 
             i18n = helper.Translation;
         }
@@ -91,8 +100,6 @@ namespace SelfServe
 
             if (ShouldOpen(isActionKey, Game1.player.getFacingDirection(), locationString, playerPosition))
             {
-                // NOTE: the game won't set dialogue if there's an active menu, so no more warpping magics lol
-
                 result = true;
                 switch (locationString)
                 {
@@ -104,7 +111,7 @@ namespace SelfServe
                                 new Response("Shop", i18n.Get("SeedShopMenu_Shop")),
                                 new Response("Leave", i18n.Get("SeedShopMenu_Leave"))
                             },
-                            delegate(StardewValley.Farmer who, string whichAnswer)
+                            delegate(Farmer who, string whichAnswer)
                             {
                                 switch (whichAnswer)
                                 {
@@ -119,7 +126,6 @@ namespace SelfServe
                                         break;
                                 }
                             }
-
                         );
                         break;
                     case "AnimalShop":
@@ -161,6 +167,31 @@ namespace SelfServe
                             Game1.activeClickableMenu = (IClickableMenu)new ShopMenu(Utility.getCarpenterStock(), 0, "Robin");
                         }
                         break;
+                    case "FishShop":
+                        Game1.player.currentLocation.createQuestionDialogue(
+                            (SDate.Now() != new SDate(9, "spring")) ? i18n.Get("FishShop_Menu") : i18n.Get("FishShop_Menu_DocVisit"),
+                            new Response[2]
+                            {
+                                new Response("Shop", i18n.Get("FishShopMenu_Shop")),
+                                new Response("Leave", i18n.Get("FishShopMenu_Leave"))
+                            },
+                            delegate (Farmer who, string whichAnswer)
+                            {
+                                switch (whichAnswer)
+                                {
+                                    case "Shop":
+                                        Game1.activeClickableMenu = (IClickableMenu)new ShopMenu(Utility.getFishShopStock(Game1.player), 0, "Willy");
+                                        break;
+                                    case "Leave":
+                                        // do nothing
+                                        break;
+                                    default:
+                                        Monitor.Log($"invalid dialogue answer: {whichAnswer}", LogLevel.Info);
+                                        break;
+                                }
+                            }
+                        );
+                        break;
                     default:
                         Monitor.Log($"invalid location: {locationString}", LogLevel.Info);
                         break;
@@ -186,7 +217,10 @@ namespace SelfServe
                         result = this.animalShopCounterTiles.Contains(playerLocation) && (npcRefs["Marnie"].currentLocation.Name != locationString || !npcRefs["Marnie"].getTileLocation().Equals(new Vector2(12f, 14f)));
                         break;
                     case "ScienceHouse":
-                        result = this.CarpentersShopCounterTiles.Contains(playerLocation) && (npcRefs["Robin"].currentLocation.Name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)));
+                        result = this.carpentersShopCounterTiles.Contains(playerLocation) && (npcRefs["Robin"].currentLocation.Name != locationString || !npcRefs["Robin"].getTileLocation().Equals(new Vector2(8f, 18f)));
+                        break;
+                    case "FishShop":
+                        result = this.fishShopShopCounterTiles.Contains(playerLocation) && (npcRefs["Willy"].currentLocation.Name != locationString || npcRefs["Willy"].getTileLocation().Y < 6f);
                         break;
                     default:
                         // Monitor.Log($"no shop at location {locationString}", LogLevel.Info);
